@@ -133,7 +133,7 @@
             <div class="space-y-4">
                 <div>
                     <label class="block text-xs font-medium text-gray-400 mb-1.5">API Endpoint / Tunnel URL</label>
-                    <input id="apiBaseInput" type="url" placeholder="http://localhost:8000"
+                    <input id="apiBaseInput" type="url" placeholder="https://constant-epinions-wear-separate.trycloudflare.com"
                         class="w-full bg-[#21262d] border border-gray-700 text-gray-200 placeholder-gray-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500">
                     <p class="mt-1.5 text-xs text-gray-600">Use a tunnel URL (e.g. ngrok) when the frontend is deployed and the backend runs locally.</p>
                 </div>
@@ -165,11 +165,11 @@
 
         // --- API Base ---
         function getApiBase() {
-            return (localStorage.getItem('apiBase') || 'http://localhost:8000').replace(/\/$/, '');
+            return (localStorage.getItem('apiBase') || 'https://constant-epinions-wear-separate.trycloudflare.com').replace(/\/$/, '');
         }
 
         function openSettings() {
-            document.getElementById('apiBaseInput').value = localStorage.getItem('apiBase') || 'http://localhost:8000';
+            document.getElementById('apiBaseInput').value = localStorage.getItem('apiBase') || 'https://constant-epinions-wear-separate.trycloudflare.com';
             document.getElementById('settingsModal').classList.remove('hidden');
         }
 
@@ -179,7 +179,7 @@
 
         function saveApiBase() {
             const input = document.getElementById('apiBaseInput');
-            const url = input.value.trim().replace(/\/$/, '') || 'http://localhost:8000';
+            const url = input.value.trim().replace(/\/$/, '') || 'https://constant-epinions-wear-separate.trycloudflare.com';
             localStorage.setItem('apiBase', url);
             input.value = url;
             document.getElementById('apiSaveStatus').innerText = 'Saved!';
