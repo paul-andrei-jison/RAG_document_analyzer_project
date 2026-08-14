@@ -154,6 +154,14 @@
 
     <script>
         let currentDocId = null;
+        let currentAbort = null;
+
+        function stopOperation() {
+            if (currentAbort) {
+                currentAbort.abort();
+                currentAbort = null;
+            }
+        }
 
         // --- API Base ---
         function getApiBase() {
@@ -232,10 +240,15 @@
             const statusEl = document.getElementById('uploadStatus');
             const uploadBtn = document.getElementById('uploadBtn');
             statusEl.innerText = 'Ingesting...';
-            uploadBtn.disabled = true;
+            uploadBtn.innerText = 'Stop';
+            uploadBtn.onclick = stopOperation;
+            uploadBtn.classList.replace('bg-blue-600', 'bg-red-600');
+            uploadBtn.classList.replace('hover:bg-blue-700', 'hover:bg-red-700');
+
+            currentAbort = new AbortController();
 
             try {
-                const res = await fetch(getApiBase() + '/upload', { method: 'POST', body: formData });
+                const res = await fetch(getApiBase() + '/upload', { method: 'POST', body: formData, signal: currentAbort.signal });
                 const data = await res.json();
 
                 if (res.ok) {
@@ -250,9 +263,14 @@
                     alert(data.detail);
                 }
             } catch (err) {
-                statusEl.innerText = 'Error connecting to backend.';
-                console.error(err);
+                statusEl.innerText = err.name === 'AbortError' ? 'Stopped.' : 'Error connecting to backend.';
+                if (err.name !== 'AbortError') console.error(err);
             } finally {
+                currentAbort = null;
+                uploadBtn.innerText = 'Upload & Ingest';
+                uploadBtn.onclick = uploadFile;
+                uploadBtn.classList.replace('bg-red-600', 'bg-blue-600');
+                uploadBtn.classList.replace('hover:bg-red-700', 'hover:bg-blue-700');
                 uploadBtn.disabled = false;
             }
         }
@@ -260,20 +278,26 @@
         // --- Summary ---
         async function generateSummary() {
             const area = document.getElementById('summaryArea');
-            area.innerHTML = '<div class="flex items-center gap-2 text-gray-500 text-xs p-1"><div class="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin shrink-0"></div>Generating summary...</div>';
+            area.innerHTML = '<div class="flex items-center gap-2 text-gray-500 text-xs p-1"><div class="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin shrink-0"></div>Generating summary...<button onclick="stopOperation()" class="ml-2 text-red-400 hover:text-red-300 text-xs">✕ Stop</button></div>';
 
             const { provider, model_id } = getSelectedModel();
+            currentAbort = new AbortController();
             try {
                 const res = await fetch(getApiBase() + '/summarize', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ doc_id: currentDocId, provider, model_id })
+                    body: JSON.stringify({ doc_id: currentDocId, provider, model_id }),
+                    signal: currentAbort.signal
                 });
                 const data = await res.json();
                 area.className = 'flex-1 overflow-y-auto text-sm text-gray-300 leading-relaxed whitespace-pre-wrap';
                 area.innerText = data.summary;
-            } catch {
-                area.innerText = 'Failed to generate summary.';
+            } catch (err) {
+                area.innerHTML = err.name === 'AbortError'
+                    ? '<p class="text-gray-500 text-xs italic p-1">Summary stopped.</p>'
+                    : '<p class="text-xs p-1">Failed to generate summary.</p>';
+            } finally {
+                currentAbort = null;
             }
         }
 
@@ -288,18 +312,35 @@
             const loaderId = appendMessage('', 'ai', true);
             const { provider, model_id } = getSelectedModel();
 
+            const sendBtn = document.getElementById('sendBtn');
+            sendBtn.innerText = 'Stop';
+            sendBtn.onclick = stopOperation;
+            sendBtn.classList.replace('bg-blue-600', 'bg-red-600');
+            sendBtn.classList.replace('hover:bg-blue-700', 'hover:bg-red-700');
+
+            currentAbort = new AbortController();
+
             try {
                 const res = await fetch(getApiBase() + '/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ doc_id: currentDocId, query, provider, model_id })
+                    body: JSON.stringify({ doc_id: currentDocId, query, provider, model_id }),
+                    signal: currentAbort.signal
                 });
                 const data = await res.json();
                 const el = document.getElementById(loaderId);
                 if (el) el.innerHTML = data.answer.replace(/\n/g, '<br>');
-            } catch {
+            } catch (err) {
                 const el = document.getElementById(loaderId);
-                if (el) el.innerHTML = '<span class="text-red-400">Error reaching AI.</span>';
+                if (el) el.innerHTML = err.name === 'AbortError'
+                    ? '<span class="text-gray-500 italic">Stopped.</span>'
+                    : '<span class="text-red-400">Error reaching AI.</span>';
+            } finally {
+                currentAbort = null;
+                sendBtn.innerText = 'Send';
+                sendBtn.onclick = sendQuery;
+                sendBtn.classList.replace('bg-red-600', 'bg-blue-600');
+                sendBtn.classList.replace('hover:bg-red-700', 'hover:bg-blue-700');
             }
         }
 
