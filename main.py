@@ -11,7 +11,7 @@ from ai_provider import get_ai_provider
 from ingestion import ingest_document
 from rag_engine import summarize_document, chat_with_document
 
-app = FastAPI(title="Local RAG Chat API")
+app = FastAPI(title="DocuMind API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -47,13 +47,36 @@ class ChatRequest(BaseModel):
     doc_only: bool = True
 
 
+@app.get("/documents")
+async def list_documents():
+    results = collection.get()
+    docs = {}
+    for meta in results.get("metadatas", []) or []:
+        if meta:
+            doc_id = meta.get("doc_id")
+            source = meta.get("source", "Unknown")
+            if doc_id and doc_id not in docs:
+                docs[doc_id] = source
+    return [{"doc_id": k, "filename": v} for k, v in docs.items()]
+
+
+@app.delete("/documents/{doc_id}")
+async def delete_document(doc_id: str):
+    try:
+        results = collection.get(where={"doc_id": doc_id})
+        if results["ids"]:
+            collection.delete(ids=results["ids"])
+        return {"deleted": len(results["ids"])}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/upload")
 async def upload_file(file: UploadFile = File(...)):
-    if not file.filename.endswith(('.pdf', '.txt')):
+    if not file.filename.endswith((".pdf", ".txt")):
         raise HTTPException(status_code=400, detail="Only PDF and TXT files are supported.")
 
     file_path = os.path.join(UPLOAD_DIR, file.filename)
-
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 

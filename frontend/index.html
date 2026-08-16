@@ -3,111 +3,151 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RAG Document Analyzer</title>
+    <title>DocuMind</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #444d56; }
+        select option { background: #1c2128; }
+        .doc-item { transition: background 0.15s, border-color 0.15s; }
+        .doc-item.active { background: rgba(59,130,246,0.08); border-left: 2px solid #3b82f6; }
+        .doc-item:not(.active) { border-left: 2px solid transparent; }
+        .delete-btn { opacity: 0; transition: opacity 0.15s; }
+        .doc-item:hover .delete-btn { opacity: 1; }
+    </style>
 </head>
-<body class="bg-[#0d1117] text-gray-100 h-screen flex flex-col overflow-hidden">
+<body class="bg-[#0d1117] text-[#e6edf3] h-screen flex flex-col overflow-hidden">
 
-    <!-- Top Navigation Bar -->
-    <nav class="bg-[#161b22] border-b border-gray-800 px-6 py-3 flex items-center justify-between shrink-0">
-        <div class="flex items-center gap-3">
-            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-sm text-white select-none">AI</div>
-            <span class="font-semibold text-white text-lg">RAG Analyzer</span>
-            <span class="text-gray-500 text-xs bg-gray-800 px-2 py-0.5 rounded-full">Local</span>
+    <!-- Nav -->
+    <nav class="bg-[#161b22] border-b border-[#30363d] px-5 py-2.5 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2.5">
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shrink-0 shadow-lg shadow-blue-900/30">
+                <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                </svg>
+            </div>
+            <span class="font-semibold text-[#e6edf3] tracking-tight">DocuMind</span>
         </div>
 
-        <div class="flex items-center gap-3">
-            <!-- Model Selector -->
-            <div class="flex items-center gap-2">
-                <span class="text-xs text-gray-500">Model:</span>
-                <select id="modelSelect" class="bg-[#21262d] border border-gray-700 text-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-blue-500 cursor-pointer">
-                    <option value="llama3.2" selected>Llama 3.2 (3B)</option>
-                    <option value="llama3.1">Llama 3.1 (8B)</option>
-                    <option value="mistral">Mistral (7B)</option>
+        <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 bg-[#21262d] border border-[#30363d] rounded-lg px-3 py-1.5">
+                <svg class="w-3 h-3 text-[#7d8590] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2h-2"/>
+                </svg>
+                <select id="modelSelect" class="bg-transparent text-[#e6edf3] text-xs focus:outline-none cursor-pointer pr-1">
+                    <option value="llama3.2">Llama 3.2 · 3B</option>
+                    <option value="llama3.1">Llama 3.1 · 8B</option>
+                    <option value="mistral">Mistral · 7B</option>
                     <option value="phi3">Phi-3 Mini</option>
                 </select>
             </div>
 
-            <!-- Status Badge -->
-            <div class="flex items-center gap-2 bg-[#21262d] border border-gray-700 rounded-lg px-3 py-1.5">
-                <div id="statusDot" class="w-2 h-2 rounded-full bg-gray-500 animate-pulse"></div>
-                <span id="statusText" class="text-gray-400 text-xs">Checking...</span>
+            <div class="flex items-center gap-1.5 bg-[#21262d] border border-[#30363d] rounded-lg px-3 py-1.5">
+                <div id="statusDot" class="w-1.5 h-1.5 rounded-full bg-[#7d8590] animate-pulse shrink-0"></div>
+                <span id="statusText" class="text-[#7d8590] text-xs whitespace-nowrap">Checking...</span>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content -->
+    <!-- Body -->
     <div class="flex flex-1 overflow-hidden">
 
-        <!-- Left Sidebar -->
-        <aside class="w-80 bg-[#161b22] border-r border-gray-800 flex flex-col shrink-0">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-[#161b22] border-r border-[#30363d] flex flex-col shrink-0">
 
-            <!-- Upload Section -->
-            <div class="p-4 border-b border-gray-800 shrink-0">
-                <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Document</h3>
-                <label for="fileInput"
-                    class="flex flex-col items-center justify-center w-full h-20 border-2 border-dashed border-gray-700 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-500/5 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-600 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                    <span class="text-xs text-gray-500">Click to select PDF or TXT</span>
+            <!-- Library header -->
+            <div class="px-3 pt-4 pb-2 shrink-0">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-[10px] font-semibold text-[#7d8590] uppercase tracking-widest">Library</span>
+                    <label for="fileInput" title="Add document"
+                        class="cursor-pointer flex items-center gap-1 text-xs text-[#7d8590] hover:text-blue-400 transition-colors font-medium px-2 py-1 rounded-md hover:bg-blue-500/10">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Add
+                    </label>
                     <input id="fileInput" type="file" accept=".pdf,.txt" class="hidden" onchange="handleFileSelect()">
-                </label>
-                <p id="fileNameDisplay" class="text-xs text-gray-500 mt-2 truncate hidden"></p>
-                <button id="uploadBtn" onclick="uploadFile()" disabled
-                    class="mt-2 w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium py-2 rounded-lg transition-colors">
-                    Upload &amp; Ingest
-                </button>
-                <p id="uploadStatus" class="text-xs text-gray-500 text-center mt-2 min-h-[1rem]"></p>
+                </div>
+
+                <!-- Upload status -->
+                <div id="uploadProgress" class="hidden bg-[#1c2128] border border-[#30363d] rounded-lg p-2.5 mb-1">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span id="uploadFilename" class="text-xs text-[#e6edf3] truncate max-w-[140px] font-medium"></span>
+                        <button onclick="stopOperation()" class="text-[10px] text-red-400 hover:text-red-300 transition-colors ml-1 shrink-0">✕</button>
+                    </div>
+                    <div class="w-full h-1 bg-[#30363d] rounded-full overflow-hidden">
+                        <div class="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full w-full animate-pulse"></div>
+                    </div>
+                    <p id="uploadStatus" class="text-[10px] text-[#7d8590] mt-1.5"></p>
+                </div>
             </div>
 
-            <!-- Summary Section -->
-            <div class="flex-1 flex flex-col p-4 overflow-hidden">
-                <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 shrink-0">Summary</h3>
-                <div id="summaryArea" class="flex-1 overflow-y-auto">
-                    <div class="flex flex-col items-center justify-center h-full gap-2 text-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        <p class="text-gray-600 text-xs">Summary will appear here after upload</p>
-                    </div>
+            <!-- Document list -->
+            <div id="docList" class="flex-1 overflow-y-auto px-2 pb-2 space-y-0.5">
+                <div id="emptyLibrary" class="flex flex-col items-center justify-center h-full gap-2 py-10 text-center">
+                    <svg class="w-7 h-7 text-[#30363d]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
+                    </svg>
+                    <p class="text-[11px] text-[#7d8590] leading-relaxed">No documents yet.<br/>Click <span class="text-blue-400 font-medium">+ Add</span> to upload.</p>
                 </div>
+            </div>
+
+            <!-- Summary panel -->
+            <div id="summaryPanel" class="hidden border-t border-[#30363d] flex flex-col shrink-0" style="max-height:220px">
+                <div class="flex items-center justify-between px-3 py-2 shrink-0">
+                    <span class="text-[10px] font-semibold text-[#7d8590] uppercase tracking-widest">Summary</span>
+                    <button onclick="regenerateSummary()" class="text-[10px] text-[#7d8590] hover:text-blue-400 transition-colors">↻ Regen</button>
+                </div>
+                <div id="summaryContent" class="overflow-y-auto px-3 pb-3 text-[11px] text-[#7d8590] leading-relaxed"></div>
             </div>
         </aside>
 
-        <!-- Chat Area -->
+        <!-- Chat -->
         <main class="flex-1 flex flex-col overflow-hidden">
 
-            <!-- Chat Log -->
-            <div id="chatLog" class="flex-1 overflow-y-auto p-6 space-y-4">
-                <div id="welcomeMsg" class="flex flex-col items-center justify-center h-full gap-3 text-center">
-                    <div class="w-16 h-16 bg-blue-600/10 border border-blue-600/20 rounded-2xl flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+            <!-- Active doc header -->
+            <div id="chatHeader" class="hidden border-b border-[#30363d] bg-[#161b22]/60 px-5 py-2 flex items-center gap-2 shrink-0">
+                <svg class="w-3.5 h-3.5 text-blue-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <span id="activeDocName" class="text-xs text-[#7d8590] truncate"></span>
+            </div>
+
+            <!-- Messages -->
+            <div id="chatLog" class="flex-1 overflow-y-auto p-6 space-y-3">
+                <div id="welcomeMsg" class="flex flex-col items-center justify-center h-full gap-4 text-center select-none pointer-events-none">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/10 to-indigo-600/10 border border-blue-500/20 flex items-center justify-center">
+                        <svg class="w-7 h-7 text-blue-400/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
                         </svg>
                     </div>
-                    <h2 class="text-xl font-semibold text-white">RAG Document Analyzer</h2>
-                    <p class="text-gray-500 text-sm max-w-sm">Upload a document on the left, then ask questions about its contents using any supported model.</p>
+                    <div>
+                        <h2 class="text-base font-semibold text-[#e6edf3] mb-1">DocuMind</h2>
+                        <p class="text-sm text-[#7d8590] max-w-xs leading-relaxed">Add documents to your library and select one to start chatting.</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- Chat Input -->
-            <div class="border-t border-gray-800 bg-[#161b22] p-4">
-                <div class="flex gap-3 items-center">
-                    <button id="docOnlyBtn" onclick="toggleDocOnly()"
-                        title="Toggle between document-only and open knowledge"
-                        class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border transition-colors bg-blue-600/20 border-blue-500 text-blue-300">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <!-- Input -->
+            <div class="border-t border-[#30363d] bg-[#161b22] px-4 py-3">
+                <div class="flex gap-2 items-center">
+                    <button id="docOnlyBtn" onclick="toggleDocOnly()" title="Toggle knowledge scope"
+                        class="shrink-0 flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[11px] font-medium border transition-all bg-blue-500/10 border-blue-500/30 text-blue-400 hover:bg-blue-500/20 whitespace-nowrap">
+                        <svg class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
-                        Doc Only
+                        Doc only
                     </button>
-                    <input id="queryInput" type="text" placeholder="Ask a question about your document..." disabled
+                    <input id="queryInput" type="text" placeholder="Ask about your document..." disabled
                         onkeypress="handleEnter(event)"
-                        class="flex-1 bg-[#21262d] border border-gray-700 text-gray-200 placeholder-gray-600 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 disabled:opacity-40 transition-colors">
+                        class="flex-1 bg-[#21262d] border border-[#30363d] text-[#e6edf3] placeholder-[#7d8590] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500/50 disabled:opacity-40 transition-colors">
                     <button id="sendBtn" onclick="sendQuery()" disabled
-                        class="bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white px-5 py-3 rounded-xl text-sm font-medium transition-colors shrink-0">
-                        Send
+                        class="shrink-0 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white w-10 h-10 rounded-xl flex items-center justify-center transition-colors shadow-lg shadow-blue-900/30">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7l7 7-7 7"/>
+                        </svg>
                     </button>
                 </div>
             </div>
@@ -118,175 +158,226 @@
         let currentDocId = null;
         let currentAbort = null;
         let docOnly = true;
+        const summaryCache = {};
 
+        // ── Status ──────────────────────────────────────────
+        async function checkStatus() {
+            const dot = document.getElementById('statusDot');
+            const txt = document.getElementById('statusText');
+            try {
+                const data = await fetch('/status').then(r => r.json());
+                if (data.status === 'online') {
+                    dot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0';
+                    txt.className = 'text-emerald-400 text-xs whitespace-nowrap';
+                    txt.innerText = 'Ollama ready';
+                } else {
+                    dot.className = 'w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0';
+                    txt.className = 'text-amber-400 text-xs whitespace-nowrap';
+                    txt.innerText = 'Ollama offline';
+                }
+            } catch {
+                dot.className = 'w-1.5 h-1.5 rounded-full bg-red-400 shrink-0';
+                txt.className = 'text-red-400 text-xs whitespace-nowrap';
+                txt.innerText = 'Backend offline';
+            }
+        }
+
+        // ── Documents ───────────────────────────────────────
+        async function loadDocuments() {
+            const docs = await fetch('/documents').then(r => r.json()).catch(() => []);
+            renderDocList(docs);
+        }
+
+        function renderDocList(docs) {
+            const list = document.getElementById('docList');
+            if (!docs.length) {
+                list.innerHTML = '';
+                list.innerHTML = `<div class="flex flex-col items-center justify-center h-full gap-2 py-10 text-center">
+                    <svg class="w-7 h-7 text-[#30363d]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/></svg>
+                    <p class="text-[11px] text-[#7d8590] leading-relaxed">No documents yet.<br/>Click <span class="text-blue-400 font-medium">+ Add</span> to upload.</p>
+                </div>`;
+                return;
+            }
+            list.innerHTML = '';
+            docs.forEach(doc => {
+                const isActive = doc.doc_id === currentDocId;
+                const item = document.createElement('div');
+                item.className = 'doc-item rounded-lg px-2.5 py-2 cursor-pointer flex items-center gap-2 group' + (isActive ? ' active' : '');
+                item.innerHTML = `
+                    <svg class="w-3.5 h-3.5 shrink-0 ${isActive ? 'text-blue-400' : 'text-[#7d8590]'}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span class="text-xs truncate flex-1 ${isActive ? 'text-[#e6edf3] font-medium' : 'text-[#7d8590]'}">${doc.filename}</span>
+                    <button class="delete-btn text-[#7d8590] hover:text-red-400 transition-colors p-0.5 rounded" data-id="${doc.doc_id}" data-name="${doc.filename.replace(/"/g, '&quot;')}">
+                        <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>`;
+                item.querySelector('.delete-btn').addEventListener('click', e => {
+                    e.stopPropagation();
+                    deleteDoc(doc.doc_id, doc.filename);
+                });
+                item.addEventListener('click', () => selectDocument(doc.doc_id, doc.filename));
+                list.appendChild(item);
+            });
+        }
+
+        function selectDocument(doc_id, filename) {
+            if (currentDocId === doc_id) return;
+            currentDocId = doc_id;
+
+            document.getElementById('chatHeader').classList.remove('hidden');
+            document.getElementById('activeDocName').innerText = filename;
+            document.getElementById('queryInput').disabled = false;
+            document.getElementById('sendBtn').disabled = false;
+
+            const log = document.getElementById('chatLog');
+            log.innerHTML = `<div class="flex justify-center"><span class="text-[11px] text-[#7d8590] bg-[#1c2128] border border-[#30363d] px-3 py-1 rounded-full">Chatting about ${filename}</span></div>`;
+
+            loadDocuments();
+            showSummary(doc_id);
+        }
+
+        async function deleteDoc(doc_id, filename) {
+            if (!confirm(`Delete "${filename}" from the library?`)) return;
+            await fetch(`/documents/${doc_id}`, { method: 'DELETE' });
+            delete summaryCache[doc_id];
+            if (currentDocId === doc_id) {
+                currentDocId = null;
+                document.getElementById('chatHeader').classList.add('hidden');
+                document.getElementById('queryInput').disabled = true;
+                document.getElementById('sendBtn').disabled = true;
+                document.getElementById('summaryPanel').classList.add('hidden');
+                document.getElementById('chatLog').innerHTML = `<div id="welcomeMsg" class="flex flex-col items-center justify-center h-full gap-4 text-center select-none pointer-events-none">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/10 to-indigo-600/10 border border-blue-500/20 flex items-center justify-center">
+                        <svg class="w-7 h-7 text-blue-400/60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                    </div>
+                    <div><h2 class="text-base font-semibold text-[#e6edf3] mb-1">DocuMind</h2><p class="text-sm text-[#7d8590] max-w-xs leading-relaxed">Add documents to your library and select one to start chatting.</p></div>
+                </div>`;
+            }
+            loadDocuments();
+        }
+
+        // ── Summary ─────────────────────────────────────────
+        async function showSummary(doc_id) {
+            const panel = document.getElementById('summaryPanel');
+            const content = document.getElementById('summaryContent');
+            panel.classList.remove('hidden');
+            if (summaryCache[doc_id]) { content.innerText = summaryCache[doc_id]; return; }
+            content.innerHTML = '<div class="flex items-center gap-1.5 py-1"><div class="w-2.5 h-2.5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin shrink-0"></div><span>Summarising...</span></div>';
+            await generateSummary(doc_id);
+        }
+
+        async function generateSummary(doc_id) {
+            const content = document.getElementById('summaryContent');
+            const model_id = document.getElementById('modelSelect').value;
+            currentAbort = new AbortController();
+            try {
+                const data = await fetch('/summarize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ doc_id, model_id }),
+                    signal: currentAbort.signal
+                }).then(r => r.json());
+                summaryCache[doc_id] = data.summary;
+                if (currentDocId === doc_id) content.innerText = data.summary;
+            } catch (err) {
+                if (currentDocId === doc_id)
+                    content.innerHTML = err.name === 'AbortError' ? '<span class="italic">Stopped.</span>' : '<span class="text-red-400/70">Failed to generate.</span>';
+            } finally { currentAbort = null; }
+        }
+
+        async function regenerateSummary() {
+            if (!currentDocId) return;
+            delete summaryCache[currentDocId];
+            await showSummary(currentDocId);
+        }
+
+        // ── Upload ──────────────────────────────────────────
+        function handleFileSelect() {
+            const file = document.getElementById('fileInput').files[0];
+            if (!file) return;
+            uploadFile(file);
+            document.getElementById('fileInput').value = '';
+        }
+
+        async function uploadFile(file) {
+            const progress = document.getElementById('uploadProgress');
+            const statusEl = document.getElementById('uploadStatus');
+            document.getElementById('uploadFilename').innerText = file.name;
+            progress.classList.remove('hidden');
+            statusEl.innerText = 'Ingesting...';
+            const formData = new FormData();
+            formData.append('file', file);
+            currentAbort = new AbortController();
+            try {
+                const res = await fetch('/upload', { method: 'POST', body: formData, signal: currentAbort.signal });
+                const data = await res.json();
+                if (res.ok) {
+                    statusEl.innerText = `✓ ${data.chunk_count} chunks`;
+                    await loadDocuments();
+                    selectDocument(data.doc_id, data.filename);
+                } else {
+                    statusEl.innerText = 'Failed.';
+                    alert(data.detail);
+                }
+            } catch (err) {
+                statusEl.innerText = err.name === 'AbortError' ? 'Stopped.' : 'Error.';
+            } finally {
+                currentAbort = null;
+                setTimeout(() => progress.classList.add('hidden'), 2500);
+            }
+        }
+
+        // ── Chat ────────────────────────────────────────────
         function toggleDocOnly() {
             docOnly = !docOnly;
             const btn = document.getElementById('docOnlyBtn');
             if (docOnly) {
-                btn.className = 'shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border transition-colors bg-blue-600/20 border-blue-500 text-blue-300';
-                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> Doc Only`;
+                btn.className = 'shrink-0 flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[11px] font-medium border transition-all bg-blue-500/10 border-blue-500/30 text-blue-400 hover:bg-blue-500/20 whitespace-nowrap';
+                btn.innerHTML = `<svg class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Doc only`;
             } else {
-                btn.className = 'shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border transition-colors bg-purple-600/20 border-purple-500 text-purple-300';
-                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9" /></svg> Open`;
+                btn.className = 'shrink-0 flex items-center gap-1.5 px-2.5 py-2 rounded-lg text-[11px] font-medium border transition-all bg-purple-500/10 border-purple-500/30 text-purple-400 hover:bg-purple-500/20 whitespace-nowrap';
+                btn.innerHTML = `<svg class="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"/></svg> Open`;
             }
         }
 
         function stopOperation() {
-            if (currentAbort) {
-                currentAbort.abort();
-                currentAbort = null;
-            }
+            if (currentAbort) { currentAbort.abort(); currentAbort = null; }
         }
 
-        function getSelectedModel() {
-            return document.getElementById('modelSelect').value;
-        }
-
-        // --- Status Check ---
-        async function checkStatus() {
-            const dot = document.getElementById('statusDot');
-            const text = document.getElementById('statusText');
-            try {
-                const res = await fetch('/status');
-                const data = await res.json();
-                if (data.status === 'online') {
-                    dot.className = 'w-2 h-2 rounded-full bg-green-400';
-                    text.className = 'text-green-400 text-xs';
-                    text.innerText = 'Ollama Ready';
-                } else {
-                    dot.className = 'w-2 h-2 rounded-full bg-yellow-400';
-                    text.className = 'text-yellow-400 text-xs';
-                    text.innerText = 'Ollama Offline';
-                }
-            } catch {
-                dot.className = 'w-2 h-2 rounded-full bg-red-400';
-                text.className = 'text-red-400 text-xs';
-                text.innerText = 'Backend Offline';
-            }
-        }
-
-        // --- File Handling ---
-        function handleFileSelect() {
-            const file = document.getElementById('fileInput').files[0];
-            if (!file) return;
-            const display = document.getElementById('fileNameDisplay');
-            display.innerText = file.name;
-            display.classList.remove('hidden');
-            document.getElementById('uploadBtn').disabled = false;
-        }
-
-        // --- Upload ---
-        async function uploadFile() {
-            const fileInput = document.getElementById('fileInput');
-            if (!fileInput.files[0]) return;
-
-            const formData = new FormData();
-            formData.append('file', fileInput.files[0]);
-
-            const statusEl = document.getElementById('uploadStatus');
-            const uploadBtn = document.getElementById('uploadBtn');
-            statusEl.innerText = 'Ingesting...';
-            uploadBtn.innerText = 'Stop';
-            uploadBtn.onclick = stopOperation;
-            uploadBtn.classList.replace('bg-blue-600', 'bg-red-600');
-            uploadBtn.classList.replace('hover:bg-blue-700', 'hover:bg-red-700');
-
-            currentAbort = new AbortController();
-
-            try {
-                const res = await fetch('/upload', { method: 'POST', body: formData, signal: currentAbort.signal });
-                const data = await res.json();
-
-                if (res.ok) {
-                    currentDocId = data.doc_id;
-                    statusEl.innerText = `✓ ${data.chunk_count} chunks ingested`;
-                    document.getElementById('queryInput').disabled = false;
-                    document.getElementById('sendBtn').disabled = false;
-                    document.getElementById('welcomeMsg')?.remove();
-                    generateSummary();
-                } else {
-                    statusEl.innerText = 'Upload failed.';
-                    alert(data.detail);
-                }
-            } catch (err) {
-                statusEl.innerText = err.name === 'AbortError' ? 'Stopped.' : 'Error connecting to backend.';
-                if (err.name !== 'AbortError') console.error(err);
-            } finally {
-                currentAbort = null;
-                uploadBtn.innerText = 'Upload & Ingest';
-                uploadBtn.onclick = uploadFile;
-                uploadBtn.classList.replace('bg-red-600', 'bg-blue-600');
-                uploadBtn.classList.replace('hover:bg-red-700', 'hover:bg-blue-700');
-                uploadBtn.disabled = false;
-            }
-        }
-
-        // --- Summary ---
-        async function generateSummary() {
-            const area = document.getElementById('summaryArea');
-            area.innerHTML = '<div class="flex items-center gap-2 text-gray-500 text-xs p-1"><div class="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin shrink-0"></div>Generating summary...<button onclick="stopOperation()" class="ml-2 text-red-400 hover:text-red-300 text-xs">✕ Stop</button></div>';
-
-            const model_id = getSelectedModel();
-            currentAbort = new AbortController();
-            try {
-                const res = await fetch('/summarize', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ doc_id: currentDocId, model_id }),
-                    signal: currentAbort.signal
-                });
-                const data = await res.json();
-                area.className = 'flex-1 overflow-y-auto text-sm text-gray-300 leading-relaxed whitespace-pre-wrap';
-                area.innerText = data.summary;
-            } catch (err) {
-                area.innerHTML = err.name === 'AbortError'
-                    ? '<p class="text-gray-500 text-xs italic p-1">Summary stopped.</p>'
-                    : '<p class="text-xs p-1">Failed to generate summary.</p>';
-            } finally {
-                currentAbort = null;
-            }
-        }
-
-        // --- Chat ---
         async function sendQuery() {
             const input = document.getElementById('queryInput');
             const query = input.value.trim();
             if (!query || !currentDocId) return;
-
             appendMessage(query, 'user');
             input.value = '';
             const loaderId = appendMessage('', 'ai', true);
-            const model_id = getSelectedModel();
-
+            const model_id = document.getElementById('modelSelect').value;
             const sendBtn = document.getElementById('sendBtn');
-            sendBtn.innerText = 'Stop';
             sendBtn.onclick = stopOperation;
+            sendBtn.innerHTML = `<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>`;
             sendBtn.classList.replace('bg-blue-600', 'bg-red-600');
-            sendBtn.classList.replace('hover:bg-blue-700', 'hover:bg-red-700');
-
+            sendBtn.classList.replace('hover:bg-blue-500', 'hover:bg-red-500');
             currentAbort = new AbortController();
-
             try {
-                const res = await fetch('/chat', {
+                const data = await fetch('/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ doc_id: currentDocId, query, model_id, doc_only: docOnly }),
                     signal: currentAbort.signal
-                });
-                const data = await res.json();
+                }).then(r => r.json());
                 const el = document.getElementById(loaderId);
                 if (el) el.innerHTML = data.answer.replace(/\n/g, '<br>');
             } catch (err) {
                 const el = document.getElementById(loaderId);
                 if (el) el.innerHTML = err.name === 'AbortError'
-                    ? '<span class="text-gray-500 italic">Stopped.</span>'
-                    : '<span class="text-red-400">Error reaching AI.</span>';
+                    ? '<span class="text-[#7d8590] italic text-xs">Stopped.</span>'
+                    : '<span class="text-red-400 text-xs">Error reaching AI.</span>';
             } finally {
                 currentAbort = null;
-                sendBtn.innerText = 'Send';
                 sendBtn.onclick = sendQuery;
+                sendBtn.innerHTML = `<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7-7l7 7-7 7"/></svg>`;
                 sendBtn.classList.replace('bg-red-600', 'bg-blue-600');
-                sendBtn.classList.replace('hover:bg-red-700', 'hover:bg-blue-700');
+                sendBtn.classList.replace('hover:bg-red-500', 'hover:bg-blue-500');
             }
         }
 
@@ -294,34 +385,30 @@
             const log = document.getElementById('chatLog');
             const wrapper = document.createElement('div');
             wrapper.className = role === 'user' ? 'flex justify-end' : 'flex justify-start';
-
             const bubble = document.createElement('div');
             const id = isLoader ? 'loader-' + Date.now() : '';
             if (id) bubble.id = id;
-
             if (role === 'user') {
-                bubble.className = 'bg-blue-600 text-white px-4 py-2.5 rounded-2xl rounded-tr-sm max-w-[75%] text-sm leading-relaxed';
+                bubble.className = 'bg-blue-600 text-white px-4 py-2.5 rounded-2xl rounded-tr-sm max-w-[75%] text-sm leading-relaxed shadow-lg shadow-blue-900/20';
                 bubble.innerText = text;
             } else {
-                bubble.className = 'bg-[#21262d] border border-gray-700 text-gray-200 px-4 py-2.5 rounded-2xl rounded-tl-sm max-w-[75%] text-sm leading-relaxed';
+                bubble.className = 'bg-[#1c2128] border border-[#30363d] text-[#e6edf3] px-4 py-2.5 rounded-2xl rounded-tl-sm max-w-[75%] text-sm leading-relaxed';
                 bubble.innerHTML = isLoader
-                    ? '<div class="flex items-center gap-2 text-gray-500"><div class="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>Thinking...</div>'
+                    ? '<div class="flex items-center gap-2 text-[#7d8590]"><div class="w-3 h-3 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div><span class="text-xs">Thinking...</span></div>'
                     : text;
             }
-
             wrapper.appendChild(bubble);
             log.appendChild(wrapper);
             log.scrollTop = log.scrollHeight;
             return id;
         }
 
-        function handleEnter(e) {
-            if (e.key === 'Enter') sendQuery();
-        }
+        function handleEnter(e) { if (e.key === 'Enter') sendQuery(); }
 
-        // Init
+        // ── Init ────────────────────────────────────────────
         checkStatus();
         setInterval(checkStatus, 30000);
+        loadDocuments();
     </script>
 </body>
 </html>
