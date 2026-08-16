@@ -125,7 +125,7 @@
                     </div>
                     <div>
                         <h2 class="text-base font-semibold text-[#e6edf3] mb-1">DocuMind</h2>
-                        <p class="text-sm text-[#7d8590] max-w-xs leading-relaxed">Add documents to your library and select one to start chatting.</p>
+                        <p class="text-sm text-[#7d8590] max-w-xs leading-relaxed">Add documents to your library. The AI will search across all of them when you chat.</p>
                     </div>
                 </div>
             </div>
@@ -155,7 +155,8 @@
     </div>
 
     <script>
-        let currentDocId = null;
+        let selectedDocId = null;  // for viewing summary only
+        let totalDocs = 0;
         let currentAbort = null;
         let docOnly = true;
         const summaryCache = {};
@@ -189,50 +190,48 @@
         }
 
         function renderDocList(docs) {
+            totalDocs = docs.length;
             const list = document.getElementById('docList');
             if (!docs.length) {
-                list.innerHTML = '';
                 list.innerHTML = `<div class="flex flex-col items-center justify-center h-full gap-2 py-10 text-center">
                     <svg class="w-7 h-7 text-[#30363d]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/></svg>
                     <p class="text-[11px] text-[#7d8590] leading-relaxed">No documents yet.<br/>Click <span class="text-blue-400 font-medium">+ Add</span> to upload.</p>
                 </div>`;
+                document.getElementById('queryInput').disabled = true;
+                document.getElementById('sendBtn').disabled = true;
+                document.getElementById('chatHeader').classList.add('hidden');
+                document.getElementById('summaryPanel').classList.add('hidden');
                 return;
             }
+
             list.innerHTML = '';
             docs.forEach(doc => {
-                const isActive = doc.doc_id === currentDocId;
+                const isSelected = doc.doc_id === selectedDocId;
                 const item = document.createElement('div');
-                item.className = 'doc-item rounded-lg px-2.5 py-2 cursor-pointer flex items-center gap-2 group' + (isActive ? ' active' : '');
+                item.className = 'doc-item rounded-lg px-2.5 py-2 cursor-pointer flex items-center gap-2 group' + (isSelected ? ' active' : '');
                 item.innerHTML = `
-                    <svg class="w-3.5 h-3.5 shrink-0 ${isActive ? 'text-blue-400' : 'text-[#7d8590]'}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg class="w-3.5 h-3.5 shrink-0 ${isSelected ? 'text-blue-400' : 'text-[#7d8590]'}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                     </svg>
-                    <span class="text-xs truncate flex-1 ${isActive ? 'text-[#e6edf3] font-medium' : 'text-[#7d8590]'}">${doc.filename}</span>
-                    <button class="delete-btn text-[#7d8590] hover:text-red-400 transition-colors p-0.5 rounded" data-id="${doc.doc_id}" data-name="${doc.filename.replace(/"/g, '&quot;')}">
+                    <span class="text-xs truncate flex-1 ${isSelected ? 'text-[#e6edf3] font-medium' : 'text-[#7d8590]'}">${doc.filename}</span>
+                    <button class="delete-btn text-[#7d8590] hover:text-red-400 transition-colors p-0.5 rounded">
                         <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>`;
-                item.querySelector('.delete-btn').addEventListener('click', e => {
-                    e.stopPropagation();
-                    deleteDoc(doc.doc_id, doc.filename);
-                });
-                item.addEventListener('click', () => selectDocument(doc.doc_id, doc.filename));
+                item.querySelector('.delete-btn').addEventListener('click', e => { e.stopPropagation(); deleteDoc(doc.doc_id, doc.filename); });
+                item.addEventListener('click', () => viewDocSummary(doc.doc_id, doc.filename));
                 list.appendChild(item);
             });
-        }
 
-        function selectDocument(doc_id, filename) {
-            if (currentDocId === doc_id) return;
-            currentDocId = doc_id;
-
-            document.getElementById('chatHeader').classList.remove('hidden');
-            document.getElementById('activeDocName').innerText = filename;
+            // Enable chat — all docs are used together
             document.getElementById('queryInput').disabled = false;
             document.getElementById('sendBtn').disabled = false;
+            document.getElementById('chatHeader').classList.remove('hidden');
+            document.getElementById('activeDocName').innerText = `${docs.length} document${docs.length > 1 ? 's' : ''} in library`;
+        }
 
-            const log = document.getElementById('chatLog');
-            log.innerHTML = `<div class="flex justify-center"><span class="text-[11px] text-[#7d8590] bg-[#1c2128] border border-[#30363d] px-3 py-1 rounded-full">Chatting about ${filename}</span></div>`;
-
-            loadDocuments();
+        function viewDocSummary(doc_id, filename) {
+            selectedDocId = doc_id;
+            loadDocuments();  // re-render to update highlight
             showSummary(doc_id);
         }
 
@@ -240,18 +239,9 @@
             if (!confirm(`Delete "${filename}" from the library?`)) return;
             await fetch(`/documents/${doc_id}`, { method: 'DELETE' });
             delete summaryCache[doc_id];
-            if (currentDocId === doc_id) {
-                currentDocId = null;
-                document.getElementById('chatHeader').classList.add('hidden');
-                document.getElementById('queryInput').disabled = true;
-                document.getElementById('sendBtn').disabled = true;
+            if (selectedDocId === doc_id) {
+                selectedDocId = null;
                 document.getElementById('summaryPanel').classList.add('hidden');
-                document.getElementById('chatLog').innerHTML = `<div id="welcomeMsg" class="flex flex-col items-center justify-center h-full gap-4 text-center select-none pointer-events-none">
-                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/10 to-indigo-600/10 border border-blue-500/20 flex items-center justify-center">
-                        <svg class="w-7 h-7 text-blue-400/60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-                    </div>
-                    <div><h2 class="text-base font-semibold text-[#e6edf3] mb-1">DocuMind</h2><p class="text-sm text-[#7d8590] max-w-xs leading-relaxed">Add documents to your library and select one to start chatting.</p></div>
-                </div>`;
             }
             loadDocuments();
         }
@@ -362,7 +352,7 @@
                 const data = await fetch('/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ doc_id: currentDocId, query, model_id, doc_only: docOnly }),
+                    body: JSON.stringify({ query, model_id, doc_only: docOnly }),
                     signal: currentAbort.signal
                 }).then(r => r.json());
                 const el = document.getElementById(loaderId);

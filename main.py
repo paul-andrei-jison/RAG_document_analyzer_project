@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 from ai_provider import get_ai_provider
 from ingestion import ingest_document
-from rag_engine import summarize_document, chat_with_document
+from rag_engine import summarize_document, chat_with_documents
 
 app = FastAPI(title="DocuMind API")
 
@@ -41,7 +41,6 @@ class SummarizeRequest(BaseModel):
 
 
 class ChatRequest(BaseModel):
-    doc_id: str
     query: str
     model_id: str = "llama3.2"
     doc_only: bool = True
@@ -102,7 +101,7 @@ async def summarize_endpoint(request: SummarizeRequest):
 async def chat_endpoint(request: ChatRequest):
     try:
         request_ai = get_ai_provider(request.model_id)
-        answer = chat_with_document(request_ai, ai, collection, request.doc_id, request.query, request.doc_only)
+        answer = chat_with_documents(request_ai, ai, collection, request.query, request.doc_only)
         return {"answer": answer}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
