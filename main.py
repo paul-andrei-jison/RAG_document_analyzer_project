@@ -1,6 +1,5 @@
 import os
 import shutil
-import ollama
 import chromadb
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.staticfiles import StaticFiles
@@ -28,8 +27,8 @@ app.mount("/static", StaticFiles(directory="frontend", html=True), name="static"
 async def serve_frontend():
     return FileResponse("frontend/index.html")
 
-# Global Ollama provider used only for embedding during ingestion
-ai = get_ai_provider("ollama")
+# Bedrock Titan used for all embeddings (ingestion + query)
+ai = get_ai_provider("bedrock", "amazon.titan-embed-text-v2:0")
 db_client = chromadb.PersistentClient(path="./local_vectordb")
 collection = db_client.get_or_create_collection(name="documents")
 
@@ -39,15 +38,15 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 class SummarizeRequest(BaseModel):
     doc_id: str
-    provider: str = "ollama"
-    model_id: str = "llama3.2"
+    provider: str = "bedrock"
+    model_id: str = "anthropic.claude-sonnet-4-6"
 
 
 class ChatRequest(BaseModel):
     doc_id: str
     query: str
-    provider: str = "ollama"
-    model_id: str = "llama3.2"
+    provider: str = "bedrock"
+    model_id: str = "anthropic.claude-sonnet-4-6"
     doc_only: bool = True
 
 
