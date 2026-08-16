@@ -1,6 +1,5 @@
 import json
 from typing import Protocol, List, runtime_checkable
-import ollama
 import boto3
 
 
@@ -13,6 +12,7 @@ class AIProvider(Protocol):
 
 class OllamaProvider:
     def __init__(self, llm_model: str = "llama3.2", embed_model: str = "nomic-embed-text"):
+        import ollama
         self.llm_model = llm_model
         self.embed_model = embed_model
         self.client = ollama.Client()
