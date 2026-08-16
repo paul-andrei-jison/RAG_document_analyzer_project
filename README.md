@@ -85,6 +85,19 @@ uvicorn main:app --host 0.0.0.0 --port 8000
 
 Go to [http://localhost:8000](http://localhost:8000) in your browser.
 
+> **No tunnel needed.** The frontend is served directly by FastAPI, so the browser and backend are on the same machine. A Cloudflare tunnel or ngrok is only needed if you want to expose the app to the internet.
+
+**Accessing from another device on your local network (phone, tablet, etc.):**
+
+Find your machine's local IP address:
+
+```powershell
+# Windows
+ipconfig
+```
+
+Then open `http://<your-local-ip>:8000` on the other device (e.g. `http://192.168.1.5:8000`).
+
 ---
 
 ## Usage
