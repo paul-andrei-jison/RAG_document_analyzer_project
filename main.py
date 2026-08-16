@@ -27,8 +27,7 @@ app.mount("/static", StaticFiles(directory="frontend", html=True), name="static"
 async def serve_frontend():
     return FileResponse("frontend/index.html")
 
-# Bedrock Titan used for all embeddings (ingestion + query)
-ai = get_ai_provider("bedrock", "amazon.titan-embed-text-v2:0")
+ai = get_ai_provider("llama3.2")
 db_client = chromadb.PersistentClient(path="./local_vectordb")
 collection = db_client.get_or_create_collection(name="documents")
 
@@ -38,15 +37,13 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 class SummarizeRequest(BaseModel):
     doc_id: str
-    provider: str = "bedrock"
-    model_id: str = "anthropic.claude-sonnet-4-6"
+    model_id: str = "llama3.2"
 
 
 class ChatRequest(BaseModel):
     doc_id: str
     query: str
-    provider: str = "bedrock"
-    model_id: str = "anthropic.claude-sonnet-4-6"
+    model_id: str = "llama3.2"
     doc_only: bool = True
 
 
@@ -71,7 +68,7 @@ async def upload_file(file: UploadFile = File(...)):
 @app.post("/summarize")
 async def summarize_endpoint(request: SummarizeRequest):
     try:
-        request_ai = get_ai_provider(request.provider, request.model_id)
+        request_ai = get_ai_provider(request.model_id)
         summary = summarize_document(request_ai, collection, request.doc_id)
         return {"summary": summary}
     except Exception as e:
@@ -81,7 +78,7 @@ async def summarize_endpoint(request: SummarizeRequest):
 @app.post("/chat")
 async def chat_endpoint(request: ChatRequest):
     try:
-        request_ai = get_ai_provider(request.provider, request.model_id)
+        request_ai = get_ai_provider(request.model_id)
         answer = chat_with_document(request_ai, ai, collection, request.doc_id, request.query, request.doc_only)
         return {"answer": answer}
     except Exception as e:
@@ -90,4 +87,9 @@ async def chat_endpoint(request: ChatRequest):
 
 @app.get("/status")
 async def status_endpoint():
-    return {"status": "online"}
+    try:
+        import ollama
+        ollama.Client().list()
+        return {"status": "online"}
+    except Exception:
+        return {"status": "offline"}
