@@ -25,9 +25,10 @@
                         <option value="ollama|llama3.2">Ollama: Llama 3.2 (3B)</option>
                     </optgroup>
                     <optgroup label="☁️ AWS Bedrock">
-                        <option value="bedrock|anthropic.claude-3-5-sonnet-20241022-v2:0">Claude 3.5 Sonnet</option>
+                        <option value="bedrock|claude-sonnet-4-5-20251001" selected>Claude Sonnet 4.5</option>
+                        <option value="bedrock|claude-haiku-4-5-20251001">Claude Haiku 4.5</option>
                         <option value="bedrock|amazon.nova-pro-v1:0">Amazon Nova Pro</option>
-                        <option value="bedrock|meta.llama3-1-8b-instruct-v1:0">Meta Llama 3.1 8B</option>
+                        <option value="bedrock|amazon.nova-lite-v1:0">Amazon Nova Lite</option>
                     </optgroup>
                 </select>
             </div>
@@ -106,7 +107,15 @@
 
             <!-- Chat Input -->
             <div class="border-t border-gray-800 bg-[#161b22] p-4">
-                <div class="flex gap-3">
+                <div class="flex gap-3 items-center">
+                    <button id="docOnlyBtn" onclick="toggleDocOnly()"
+                        title="Toggle between document-only and open knowledge"
+                        class="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border transition-colors bg-blue-600/20 border-blue-500 text-blue-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Doc Only
+                    </button>
                     <input id="queryInput" type="text" placeholder="Ask a question about your document..." disabled
                         onkeypress="handleEnter(event)"
                         class="flex-1 bg-[#21262d] border border-gray-700 text-gray-200 placeholder-gray-600 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 disabled:opacity-40 transition-colors">
@@ -155,6 +164,19 @@
     <script>
         let currentDocId = null;
         let currentAbort = null;
+        let docOnly = true;
+
+        function toggleDocOnly() {
+            docOnly = !docOnly;
+            const btn = document.getElementById('docOnlyBtn');
+            if (docOnly) {
+                btn.className = 'shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border transition-colors bg-blue-600/20 border-blue-500 text-blue-300';
+                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg> Doc Only`;
+            } else {
+                btn.className = 'shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium border transition-colors bg-purple-600/20 border-purple-500 text-purple-300';
+                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9" /></svg> Open`;
+            }
+        }
 
         function stopOperation() {
             if (currentAbort) {
@@ -206,11 +228,11 @@
                 if (data.status === 'online') {
                     dot.className = 'w-2 h-2 rounded-full bg-green-400';
                     text.className = 'text-green-400 text-xs';
-                    text.innerText = 'Local AI Ready';
+                    text.innerText = 'Backend Ready';
                 } else {
                     dot.className = 'w-2 h-2 rounded-full bg-yellow-400';
                     text.className = 'text-yellow-400 text-xs';
-                    text.innerText = 'Local AI Offline';
+                    text.innerText = 'Backend Offline';
                 }
             } catch {
                 dot.className = 'w-2 h-2 rounded-full bg-red-400';
@@ -324,7 +346,7 @@
                 const res = await fetch(getApiBase() + '/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ doc_id: currentDocId, query, provider, model_id }),
+                    body: JSON.stringify({ doc_id: currentDocId, query, provider, model_id, doc_only: docOnly }),
                     signal: currentAbort.signal
                 });
                 const data = await res.json();

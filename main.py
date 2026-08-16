@@ -48,6 +48,7 @@ class ChatRequest(BaseModel):
     query: str
     provider: str = "ollama"
     model_id: str = "llama3.2"
+    doc_only: bool = True
 
 
 @app.post("/upload")
@@ -82,7 +83,7 @@ async def summarize_endpoint(request: SummarizeRequest):
 async def chat_endpoint(request: ChatRequest):
     try:
         request_ai = get_ai_provider(request.provider, request.model_id)
-        answer = chat_with_document(request_ai, collection, request.doc_id, request.query)
+        answer = chat_with_document(request_ai, ai, collection, request.doc_id, request.query, request.doc_only)
         return {"answer": answer}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -90,8 +91,4 @@ async def chat_endpoint(request: ChatRequest):
 
 @app.get("/status")
 async def status_endpoint():
-    try:
-        ollama.Client().list()
-        return {"status": "online"}
-    except Exception:
-        return {"status": "offline"}
+    return {"status": "online"}
