@@ -13,7 +13,7 @@
         <div class="flex items-center gap-3">
             <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-bold text-sm text-white select-none">AI</div>
             <span class="font-semibold text-white text-lg">RAG Analyzer</span>
-            <span class="text-gray-500 text-xs bg-gray-800 px-2 py-0.5 rounded-full">MVP</span>
+            <span class="text-gray-500 text-xs bg-gray-800 px-2 py-0.5 rounded-full">Local</span>
         </div>
 
         <div class="flex items-center gap-3">
@@ -33,15 +33,6 @@
                 <div id="statusDot" class="w-2 h-2 rounded-full bg-gray-500 animate-pulse"></div>
                 <span id="statusText" class="text-gray-400 text-xs">Checking...</span>
             </div>
-
-            <!-- Settings Button -->
-            <button onclick="openSettings()" title="Settings"
-                class="w-8 h-8 flex items-center justify-center bg-[#21262d] border border-gray-700 rounded-lg text-gray-400 hover:text-white hover:border-gray-500 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-            </button>
         </div>
     </nav>
 
@@ -123,39 +114,6 @@
         </main>
     </div>
 
-    <!-- Settings Modal -->
-    <div id="settingsModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
-        <div class="bg-[#161b22] border border-gray-700 rounded-2xl p-6 w-[420px] shadow-2xl">
-            <div class="flex items-center justify-between mb-5">
-                <h2 class="text-base font-semibold text-white">Settings</h2>
-                <button onclick="closeSettings()" class="text-gray-500 hover:text-white transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-1.5">API Endpoint / Tunnel URL</label>
-                    <input id="apiBaseInput" type="url" placeholder="https://constant-epinions-wear-separate.trycloudflare.com"
-                        class="w-full bg-[#21262d] border border-gray-700 text-gray-200 placeholder-gray-600 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500">
-                    <p class="mt-1.5 text-xs text-gray-600">Use a tunnel URL (e.g. ngrok) when the frontend is deployed and the backend runs locally.</p>
-                </div>
-                <div class="flex gap-2 pt-1">
-                    <button onclick="saveApiBase()"
-                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2.5 rounded-lg transition-colors">
-                        Save
-                    </button>
-                    <button onclick="closeSettings()"
-                        class="flex-1 bg-[#21262d] hover:bg-gray-700 border border-gray-700 text-gray-300 text-sm font-medium py-2.5 rounded-lg transition-colors">
-                        Cancel
-                    </button>
-                </div>
-                <p id="apiSaveStatus" class="text-xs text-green-400 text-center min-h-[1rem]"></p>
-            </div>
-        </div>
-    </div>
-
     <script>
         let currentDocId = null;
         let currentAbort = null;
@@ -180,34 +138,6 @@
             }
         }
 
-        // --- API Base ---
-        function getApiBase() {
-            return (localStorage.getItem('apiBase') || 'https://constant-epinions-wear-separate.trycloudflare.com').replace(/\/$/, '');
-        }
-
-        function openSettings() {
-            document.getElementById('apiBaseInput').value = localStorage.getItem('apiBase') || 'https://constant-epinions-wear-separate.trycloudflare.com';
-            document.getElementById('settingsModal').classList.remove('hidden');
-        }
-
-        function closeSettings() {
-            document.getElementById('settingsModal').classList.add('hidden');
-        }
-
-        function saveApiBase() {
-            const input = document.getElementById('apiBaseInput');
-            const url = input.value.trim().replace(/\/$/, '') || 'https://constant-epinions-wear-separate.trycloudflare.com';
-            localStorage.setItem('apiBase', url);
-            input.value = url;
-            document.getElementById('apiSaveStatus').innerText = 'Saved!';
-            setTimeout(() => { document.getElementById('apiSaveStatus').innerText = ''; closeSettings(); }, 1000);
-        }
-
-        document.getElementById('settingsModal').addEventListener('click', function(e) {
-            if (e.target === this) closeSettings();
-        });
-
-        // --- Model Selection ---
         function getSelectedModel() {
             return document.getElementById('modelSelect').value;
         }
@@ -217,7 +147,7 @@
             const dot = document.getElementById('statusDot');
             const text = document.getElementById('statusText');
             try {
-                const res = await fetch(getApiBase() + '/status');
+                const res = await fetch('/status');
                 const data = await res.json();
                 if (data.status === 'online') {
                     dot.className = 'w-2 h-2 rounded-full bg-green-400';
@@ -264,7 +194,7 @@
             currentAbort = new AbortController();
 
             try {
-                const res = await fetch(getApiBase() + '/upload', { method: 'POST', body: formData, signal: currentAbort.signal });
+                const res = await fetch('/upload', { method: 'POST', body: formData, signal: currentAbort.signal });
                 const data = await res.json();
 
                 if (res.ok) {
@@ -299,7 +229,7 @@
             const model_id = getSelectedModel();
             currentAbort = new AbortController();
             try {
-                const res = await fetch(getApiBase() + '/summarize', {
+                const res = await fetch('/summarize', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ doc_id: currentDocId, model_id }),
@@ -337,7 +267,7 @@
             currentAbort = new AbortController();
 
             try {
-                const res = await fetch(getApiBase() + '/chat', {
+                const res = await fetch('/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ doc_id: currentDocId, query, model_id, doc_only: docOnly }),
@@ -391,6 +321,7 @@
 
         // Init
         checkStatus();
+        setInterval(checkStatus, 30000);
     </script>
 </body>
 </html>
