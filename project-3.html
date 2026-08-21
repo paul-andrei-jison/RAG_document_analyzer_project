@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<style>*{margin:0;padding:0;box-sizing:border-box;}html,body{margin:0;padding:0;}</style>
+</head><body>
+<div style="width:1200px;height:675px;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:flex;flex-direction:column;background:#fafafa;position:relative;">
+
+  <!-- HEADER (blurred behind modal) -->
+  <header style="height:52px;background:#fff;border-bottom:1px solid #e4e4e7;padding:0 24px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;filter:blur(1.5px);opacity:.7;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="width:24px;height:24px;border-radius:6px;background:#18181b;display:flex;align-items:center;justify-content:center;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+      </div>
+      <span style="font-size:13px;font-weight:600;color:#18181b;">DocuMind</span>
+      <span style="font-size:11px;color:#a1a1aa;">— First Retrieval Augmented Generation Project (Fully Local)</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #e4e4e7;border-radius:8px;padding:6px 10px;">
+        <span style="font-size:11.5px;font-weight:500;color:#3f3f46;">Llama 3.2 · 3B</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;background:#fff;border:1px solid #e4e4e7;border-radius:8px;padding:6px 10px;">
+        <span style="display:block;width:6px;height:6px;border-radius:50%;background:#22c55e;"></span>
+        <span style="font-size:11px;font-weight:500;color:#16a34a;">Ollama ready</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- APP BODY (blurred behind modal) -->
+  <div style="flex:1;display:flex;overflow:hidden;filter:blur(1.5px);opacity:.7;">
+    <aside style="width:240px;background:#fff;border-right:1px solid #e4e4e7;padding:20px 16px;flex-shrink:0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <span style="font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#a1a1aa;">Library</span>
+        <div style="font-size:11px;font-weight:600;color:#52525b;padding:4px 8px;border-radius:6px;background:#f4f4f5;">Upload</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;background:#f4f4f5;margin-bottom:4px;">
+        <div style="width:28px;height:28px;border-radius:6px;background:#18181b;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </div>
+        <div><p style="font-size:11.5px;font-weight:600;color:#18181b;">Q3_Financial_Report.pdf</p><p style="font-size:10px;color:#a1a1aa;">48 chunks</p></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;margin-bottom:4px;">
+        <div style="width:28px;height:28px;border-radius:6px;background:#e4e4e7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#71717a" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </div>
+        <div><p style="font-size:11.5px;font-weight:500;color:#3f3f46;">Product_Roadmap_2025.pdf</p><p style="font-size:10px;color:#a1a1aa;">63 chunks</p></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;">
+        <div style="width:28px;height:28px;border-radius:6px;background:#e4e4e7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#71717a" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </div>
+        <div><p style="font-size:11.5px;font-weight:500;color:#3f3f46;">Meeting_Notes_Nov.txt</p><p style="font-size:10px;color:#a1a1aa;">21 chunks</p></div>
+      </div>
+    </aside>
+    <main style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+      <div style="height:36px;background:#fff;border-bottom:1px solid #f4f4f5;padding:0 32px;display:flex;align-items:center;flex-shrink:0;">
+        <span style="font-size:11px;color:#71717a;">Searching across <strong style="color:#18181b;">3 documents</strong> simultaneously</span>
+      </div>
+      <div style="flex:1;padding:24px 32px;display:flex;flex-direction:column;gap:16px;max-width:768px;width:100%;margin:0 auto;">
+        <div style="display:flex;justify-content:flex-end;">
+          <div style="max-width:68%;background:#fff;border:1px solid #e4e4e7;border-radius:16px;border-top-right-radius:4px;padding:11px 15px;">
+            <p style="font-size:13.5px;color:#18181b;">What were the key financial highlights from Q3?</p>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-start;">
+          <div style="max-width:88%;background:#fff;border:1px solid #f4f4f5;border-radius:16px;border-top-left-radius:4px;padding:13px 16px;">
+            <p style="font-size:13px;color:#27272a;line-height:1.7;">Revenue reached $4.2M (up 18% YoY), gross margin improved to 71%, and ARR grew to $16.8M with 118% net revenue retention...</p>
+          </div>
+        </div>
+      </div>
+      <div style="background:#fff;border-top:1px solid #e4e4e7;padding:14px 24px 16px;flex-shrink:0;">
+        <div style="max-width:768px;margin:0 auto;">
+          <div style="display:flex;align-items:center;gap:8px;border:1px solid #e4e4e7;border-radius:12px;padding:4px 4px 4px 16px;">
+            <span style="flex:1;font-size:13.5px;color:#d4d4d8;">Ask anything about your documents…</span>
+            <div style="width:32px;height:32px;border-radius:8px;background:#18181b;opacity:.4;display:flex;align-items:center;justify-content:center;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-7-7l7 7-7 7"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL OVERLAY -->
+  <div style="position:absolute;inset:0;background:rgba(24,24,27,0.3);display:flex;align-items:center;justify-content:center;z-index:10;">
+
+    <!-- MODAL CARD -->
+    <div style="width:680px;height:520px;background:#fff;border-radius:16px;box-shadow:0 24px 80px rgba(0,0,0,0.22),0 8px 24px rgba(0,0,0,0.12);display:flex;flex-direction:column;overflow:hidden;">
+
+      <!-- Modal header -->
+      <div style="padding:18px 20px 16px;border-bottom:1px solid #f4f4f5;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:32px;height:32px;border-radius:8px;background:#18181b;display:flex;align-items:center;justify-content:center;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          </div>
+          <div>
+            <p style="font-size:13px;font-weight:600;color:#18181b;">Q3_Financial_Report.pdf</p>
+            <p style="font-size:10.5px;color:#a1a1aa;margin-top:1px;">48 chunks · 1.2 MB · PDF</p>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="display:inline-flex;align-items:center;gap:5px;background:#f4f4f5;border-radius:6px;padding:5px 10px;">
+            <span style="font-size:11px;color:#52525b;font-weight:500;">Raw text view</span>
+          </div>
+          <div style="width:28px;height:28px;border-radius:7px;border:1px solid #e4e4e7;display:flex;align-items:center;justify-content:center;cursor:pointer;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#71717a" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal content -->
+      <div style="flex:1;overflow:hidden;padding:20px 24px;font-family:Georgia,serif;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div style="display:inline-flex;align-items:center;gap:6px;background:#f4f4f5;border-radius:6px;padding:4px 10px;">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span style="font-size:10.5px;color:#71717a;">Full document · 48 sections</span>
+          </div>
+          <span style="font-size:10.5px;color:#a1a1aa;">scroll to read</span>
+        </div>
+
+        <div style="font-size:13px;color:#27272a;line-height:1.85;display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <p style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#a1a1aa;margin-bottom:6px;">Executive Summary</p>
+            <p>This report presents a consolidated overview of financial performance for the third quarter ending September 30, 2024. Total revenue reached <strong style="color:#18181b;">$4.2 million</strong>, representing an 18% increase year-over-year and a 7% sequential improvement from Q2. Growth was primarily driven by enterprise subscription expansion and strong net revenue retention across existing accounts.</p>
+          </div>
+          <div>
+            <p style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#a1a1aa;margin-bottom:6px;">Revenue Breakdown</p>
+            <p>Subscription revenue accounted for <strong style="color:#18181b;">$3.6M (86%)</strong> of total revenue, with professional services contributing the remaining $0.6M. Enterprise tier accounts grew from 42 to 61 during the quarter, each averaging $58,000 in annual contract value — a 12% increase from the prior period.</p>
+          </div>
+          <div>
+            <p style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#a1a1aa;margin-bottom:6px;">Profitability &amp; Margin</p>
+            <p>Gross margin expanded to <strong style="color:#18181b;">71%</strong> from 67% in Q2, reflecting infrastructure cost optimizations implemented in August. Operating expenses totaled $3.1M, resulting in an operating loss of $0.3M — a 62% improvement from the same period last year.</p>
+          </div>
+          <div style="background:#f8f8f8;border-left:3px solid #18181b;padding:10px 14px;border-radius:0 6px 6px 0;">
+            <p style="font-size:12px;color:#52525b;line-height:1.7;font-style:italic;">"Cash and cash equivalents stand at $8.1M as of quarter-end, providing approximately 14 months of runway at the current burn rate of $580K per month."</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal footer -->
+      <div style="padding:12px 24px;border-top:1px solid #f4f4f5;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+        <p style="font-size:10.5px;color:#a1a1aa;">Click any document in your library to read its full contents</p>
+        <div style="display:inline-flex;align-items:center;gap:6px;background:#18181b;color:#fff;border-radius:8px;padding:7px 14px;font-size:11.5px;font-weight:600;cursor:pointer;border-top:1px solid rgba(255,255,255,0.12);box-shadow:0 1px 3px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.06);">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          Close
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer style="background:#fff;border-top:1px solid #f4f4f5;padding:8px 24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;filter:blur(1.5px);opacity:.7;">
+    <p style="font-size:10px;color:#a1a1aa;">Built by <strong style="font-weight:600;color:#71717a;">Paul Jison</strong><span style="margin:0 6px;color:#d4d4d8;">·</span>My first RAG project</p>
+  </footer>
+</div>
+</body></html>
