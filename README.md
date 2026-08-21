@@ -1,14 +1,14 @@
-# Local RAG Document Analyzer
+# DocuMind
 
-Upload a PDF or TXT file and chat with it using a fully local AI — no internet or cloud required after setup.
+Upload PDFs and text files, then ask questions across all of them at once. Runs entirely on your machine — no cloud, no API keys.
 
 ## How it works
 
 1. You upload a document → it gets chunked and embedded using `nomic-embed-text` (via Ollama)
-2. You ask a question → the app finds the most relevant chunks and feeds them to your chosen LLM
-3. The LLM answers based on the document content
+2. You ask a question → the app finds the most relevant chunks across all documents simultaneously
+3. Your chosen LLM reads those chunks and answers
 
-Everything runs on your machine. No data leaves your computer.
+Nothing leaves your computer.
 
 ---
 
@@ -31,11 +31,11 @@ cd RAG_document_analyzer_project
 ### 2. Pull the required Ollama models
 
 ```bash
-ollama pull llama3.2
 ollama pull nomic-embed-text
+ollama pull llama3.2
 ```
 
-Optionally pull other models shown in the dropdown:
+Other models available in the dropdown:
 
 ```bash
 ollama pull llama3.1
@@ -43,7 +43,7 @@ ollama pull mistral
 ollama pull phi3
 ```
 
-### 3. Create and activate a Python virtual environment
+### 3. Create a virtual environment
 
 **Windows:**
 ```powershell
@@ -51,7 +51,7 @@ python -m venv venv
 .\venv\Scripts\Activate.ps1
 ```
 
-**Mac/Linux:**
+**Mac / Linux:**
 ```bash
 python -m venv venv
 source venv/bin/activate
@@ -65,29 +65,17 @@ pip install -r requirements.txt
 
 ---
 
-## Running the app
-
-### 1. Start Ollama (if not already running)
-
-Ollama usually starts automatically. If not:
-
-```bash
-ollama serve
-```
-
-### 2. Start the backend server
+## Running
 
 ```bash
 uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
-### 3. Open the app
+Open [http://localhost:8000](http://localhost:8000) in your browser.
 
-Go to [http://localhost:8000](http://localhost:8000) in your browser.
+> The frontend is served directly by FastAPI using relative URLs, so no tunnel or extra config is needed for local use.
 
-> **No tunnel needed for local use.** The frontend is served directly by FastAPI — all API calls use relative URLs so they always hit the same host the page was loaded from.
-
-**Accessing from another device on your local network (phone, tablet, etc.):**
+**Accessing from another device on your network (phone, tablet, another PC):**
 
 Find your machine's local IP:
 
@@ -96,41 +84,30 @@ Find your machine's local IP:
 ipconfig
 ```
 
-Then open `http://<your-local-ip>:8000` on the other device (e.g. `http://192.168.1.5:8000`).
-
-**Accessing from outside your home network (optional):**
-
-Use a Cloudflare tunnel to expose the server to the internet:
-
-```bash
-cloudflared tunnel --url http://localhost:8000
-```
-
-Open the printed URL (e.g. `https://xxx.trycloudflare.com`) on any device. No extra configuration needed — the app automatically uses that URL for all API calls.
+Then open `http://<your-local-ip>:8000` on the other device.
 
 ---
 
 ## Usage
 
-1. Select a model from the dropdown (Llama 3.2 is a good default)
-2. Upload a PDF or TXT file using the left sidebar
-3. Wait for ingestion and summary to complete
-4. Ask questions in the chat box
-5. Use the **Doc Only** toggle to switch between:
-   - **Doc Only** — answers strictly from your document
-   - **Open** — the AI can also use its general knowledge
+1. Upload a PDF or TXT file using the **+** button in the sidebar
+2. Wait for indexing to finish
+3. Type a question in the chat box
+4. Use the **Doc only / Open knowledge** toggle to control whether the AI answers strictly from your documents or can supplement with its own knowledge
 
 ---
 
 ## Project structure
 
 ```
-├── main.py          # FastAPI server and API endpoints
-├── ai_provider.py   # Ollama provider (LLM + embeddings)
-├── ingestion.py     # PDF/TXT parsing, chunking, embedding
-├── rag_engine.py    # Summarization and RAG chat logic
+├── main.py           # FastAPI server and API endpoints
+├── ai_provider.py    # Ollama provider (LLM + embeddings)
+├── ingestion.py      # PDF/TXT parsing, chunking, embedding
+├── rag_engine.py     # RAG chat logic
 ├── frontend/
-│   └── index.html   # Single-page UI
+│   └── index.html    # Single-page UI
+├── docs-site/
+│   └── index.html    # Landing / how-to page (deployed on Amplify)
 ├── requirements.txt
-└── local_vectordb/  # ChromaDB vector store (auto-created)
+└── local_vectordb/   # ChromaDB vector store (auto-created, gitignored)
 ```
