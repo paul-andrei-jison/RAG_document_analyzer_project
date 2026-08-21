@@ -82,7 +82,7 @@ async def delete_document(doc_id: str):
 async def upload_file(file: UploadFile = File(...)):
     if not file.filename.endswith((".pdf", ".txt")):
         raise HTTPException(status_code=400, detail="Only PDF and TXT files are supported.")
-    file_path = os.path.join(UPLOAD_DIR, file.filename)
+    file_path = os.path.join(UPLOAD_DIR, os.path.basename(file.filename))
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     try:
