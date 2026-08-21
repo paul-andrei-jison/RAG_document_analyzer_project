@@ -519,7 +519,7 @@
                 }).then(r => r.json());
 
                 const contentEl = document.getElementById(loaderId + '-c');
-                if (contentEl) contentEl.innerHTML = data.answer.replace(/\n/g, '<br>');
+                if (contentEl) contentEl.innerHTML = escHtml(data.answer).replace(/\n/g, '<br>');
                 const srcEl = document.getElementById(loaderId + '-src');
                 if (srcEl && data.sources && data.sources.length)
                     srcEl.textContent = '· ' + data.sources[0];
