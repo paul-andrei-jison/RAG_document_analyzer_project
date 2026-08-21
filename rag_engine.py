@@ -2,40 +2,18 @@ import chromadb
 from ai_provider import AIProvider
 
 
-def summarize_document(provider: AIProvider, collection: chromadb.Collection, doc_id: str) -> str:
-    results = collection.get(where={"doc_id": doc_id})
-    chunks = results['documents']
-    if not chunks:
-        return "No chunks found for this document."
-
-    print(f"🗺️ Map Phase: Summarizing {len(chunks)} chunks...")
-    chunk_summaries = []
-    for i, chunk in enumerate(chunks):
-        summary = provider.generate(f"Extract the most important facts from this text in 1-2 short sentences:\n\n{chunk}")
-        chunk_summaries.append(summary)
-        print(f"  - Chunk {i+1}/{len(chunks)} summarized.")
-
-    print("📉 Reduce Phase: Combining into final summary...")
-    reduce_prompt = f"""You are an expert summarizer. Synthesize the following notes into a clean, cohesive, bullet-point summary. Remove duplicates.
-
-Raw Notes:
-{chr(10).join(chunk_summaries)}
-
-Final Bulleted Summary:"""
-    return provider.generate(reduce_prompt)
-
-
-def chat_with_documents(llm_provider: AIProvider, embed_provider: AIProvider, collection: chromadb.Collection, query: str, doc_only: bool = True) -> str:
+def chat_with_documents(llm_provider: AIProvider, embed_provider: AIProvider, collection: chromadb.Collection, query: str, doc_only: bool = True) -> dict:
     """
     Searches across ALL documents in the collection simultaneously.
     doc_only=True  → answer strictly from document content
     doc_only=False → AI may supplement with its own knowledge
+    Returns dict: {answer, sources, chunks_retrieved}
     """
     print(f"🔍 Searching across all documents: '{query}'")
 
     total = collection.count()
     if total == 0:
-        return "No documents have been uploaded yet."
+        return {"answer": "No documents have been uploaded yet.", "sources": [], "chunks_retrieved": 0}
 
     query_embedding = embed_provider.embed(query)
     n = min(5, total)
@@ -49,16 +27,19 @@ def chat_with_documents(llm_provider: AIProvider, embed_provider: AIProvider, co
 
     if not retrieved_chunks:
         if doc_only:
-            return "I couldn't find any relevant information in your documents to answer that."
+            return {"answer": "I couldn't find any relevant information in your documents to answer that.", "sources": [], "chunks_retrieved": 0}
         else:
-            return llm_provider.generate(f"Answer the following question using your own knowledge:\n\nQuestion: {query}\n\nAnswer:")
+            answer = llm_provider.generate(f"Answer the following question using your own knowledge:\n\nQuestion: {query}\n\nAnswer:")
+            return {"answer": answer, "sources": [], "chunks_retrieved": 0}
 
-    # Include source filenames so the AI knows which doc each chunk came from
     metadatas = results['metadatas'][0] if results['metadatas'] else []
     context_parts = []
+    unique_sources = []
     for chunk, meta in zip(retrieved_chunks, metadatas):
         source = meta.get('source', 'Unknown') if meta else 'Unknown'
         context_parts.append(f"[{source}]\n{chunk}")
+        if source not in unique_sources:
+            unique_sources.append(source)
     context = "\n\n---\n\n".join(context_parts)
 
     if doc_only:
@@ -90,4 +71,5 @@ Query: {query}
 
 Answer:"""
 
-    return llm_provider.generate(prompt)
+    answer = llm_provider.generate(prompt)
+    return {"answer": answer, "sources": unique_sources, "chunks_retrieved": len(retrieved_chunks)}

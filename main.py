@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 from ai_provider import get_ai_provider
 from ingestion import ingest_document
-from rag_engine import summarize_document, chat_with_documents
+from rag_engine import chat_with_documents
 
 app = FastAPI(title="DocuMind API")
 
@@ -35,11 +35,6 @@ UPLOAD_DIR = "./temp_uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
-class SummarizeRequest(BaseModel):
-    doc_id: str
-    model_id: str = "llama3.2"
-
-
 class ChatRequest(BaseModel):
     query: str
     model_id: str = "llama3.2"
@@ -54,9 +49,22 @@ async def list_documents():
         if meta:
             doc_id = meta.get("doc_id")
             source = meta.get("source", "Unknown")
-            if doc_id and doc_id not in docs:
-                docs[doc_id] = source
-    return [{"doc_id": k, "filename": v} for k, v in docs.items()]
+            if doc_id:
+                if doc_id not in docs:
+                    docs[doc_id] = {"filename": source, "chunk_count": 0}
+                docs[doc_id]["chunk_count"] += 1
+    return [{"doc_id": k, "filename": v["filename"], "chunk_count": v["chunk_count"]} for k, v in docs.items()]
+
+
+@app.get("/documents/{doc_id}/content")
+async def document_content(doc_id: str):
+    results = collection.get(where={"doc_id": doc_id}, include=["documents", "metadatas"])
+    if not results["ids"]:
+        raise HTTPException(status_code=404, detail="Document not found")
+    pairs = sorted(zip(results["documents"], results["metadatas"]), key=lambda x: x[1].get("chunk_index", 0))
+    filename = results["metadatas"][0].get("source", "Unknown")
+    content = "\n\n".join(chunk for chunk, _ in pairs)
+    return {"filename": filename, "content": content}
 
 
 @app.delete("/documents/{doc_id}")
@@ -74,11 +82,9 @@ async def delete_document(doc_id: str):
 async def upload_file(file: UploadFile = File(...)):
     if not file.filename.endswith((".pdf", ".txt")):
         raise HTTPException(status_code=400, detail="Only PDF and TXT files are supported.")
-
     file_path = os.path.join(UPLOAD_DIR, file.filename)
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
-
     try:
         stats = ingest_document(ai, collection, file_path)
         os.remove(file_path)
@@ -87,22 +93,12 @@ async def upload_file(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/summarize")
-async def summarize_endpoint(request: SummarizeRequest):
-    try:
-        request_ai = get_ai_provider(request.model_id)
-        summary = summarize_document(request_ai, collection, request.doc_id)
-        return {"summary": summary}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
 @app.post("/chat")
 async def chat_endpoint(request: ChatRequest):
     try:
         request_ai = get_ai_provider(request.model_id)
-        answer = chat_with_documents(request_ai, ai, collection, request.query, request.doc_only)
-        return {"answer": answer}
+        result = chat_with_documents(request_ai, ai, collection, request.query, request.doc_only)
+        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
