@@ -466,9 +466,9 @@
         .feat-desc { font-size: 0.875rem; color: var(--text-muted); line-height: 1.7; font-weight: 300; }
 
         /* ── HOW IT WORKS ── */
-        .steps-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: start; margin-top: 4rem; }
+        .steps-list { margin-top: 4rem; max-width: 680px; }
 
-        .step { display: flex; gap: 1.5rem; padding: 2rem 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+        .step { display: flex; gap: 2rem; padding: 2.5rem 0; border-bottom: 1px solid var(--border); }
         .step:first-child { padding-top: 0; }
         .step:last-child { border-bottom: none; padding-bottom: 0; }
 
@@ -481,16 +481,15 @@
             flex-shrink: 0;
             padding-top: 0.35rem;
             letter-spacing: 0.06em;
-            transition: color 0.2s;
         }
 
-        .step.active .step-num { color: var(--gold); }
+        .step-body { flex: 1; min-width: 0; }
 
-        .step-title { font-family: var(--font-display); font-size: 1.3rem; font-weight: 400; color: var(--text); margin-bottom: 0.625rem; letter-spacing: -0.025em; }
-        .step-desc { font-size: 0.875rem; color: var(--text-muted); line-height: 1.7; font-weight: 300; }
+        .step-title { font-family: var(--font-display); font-size: 1.25rem; font-weight: 400; color: var(--text); margin-bottom: 0.5rem; letter-spacing: -0.025em; }
+        .step-desc { font-size: 0.875rem; color: var(--text-muted); line-height: 1.7; font-weight: 300; margin-bottom: 0; }
 
-        .step-code { margin-top: 1.25rem; background: #090909; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; display: none; }
-        .step.active .step-code { display: block; }
+        .step-code { margin-top: 1rem; background: #090909; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+        .step-code + .step-code { margin-top: 0.5rem; }
 
         .code-head { padding: 0.6rem 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
         .code-lang { font-family: var(--font-mono); font-size: 0.66rem; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
@@ -511,10 +510,10 @@
         .copy-btn:hover { color: var(--text); background: rgba(255,255,255,0.06); }
 
         pre {
-            padding: 1.25rem 1rem;
+            padding: 1rem;
             font-family: var(--font-mono);
-            font-size: 0.795rem;
-            line-height: 1.7;
+            font-size: 0.82rem;
+            line-height: 1.6;
             overflow-x: auto;
         }
 
@@ -524,18 +523,6 @@
         .c-str { color: #7ec99e; }
         .c-ok { color: var(--green); }
         .c-dim { color: #55525c; }
-
-        /* Steps right panel */
-        .steps-right { position: sticky; top: 7rem; }
-
-        .step-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; display: none; }
-        .step-panel.active { display: block; }
-
-        .panel-kicker { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin-bottom: 1rem; }
-        .panel-title { font-family: var(--font-display); font-size: 1.45rem; font-weight: 400; letter-spacing: -0.025em; color: var(--text); margin-bottom: 0.875rem; line-height: 1.2; }
-        .panel-desc { font-size: 0.875rem; color: var(--text-muted); line-height: 1.7; font-weight: 300; margin-bottom: 1.5rem; }
-
-        .panel-terminal { background: #090909; border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem 1rem; font-family: var(--font-mono); font-size: 0.78rem; line-height: 1.85; }
 
         /* ── TECH STACK ── */
         .tech-intro { margin-bottom: 3rem; }
@@ -639,9 +626,6 @@
             .hero { padding: 7rem 1.5rem 3rem; }
             .section { padding: 5rem 1.5rem; }
             .features-grid { grid-template-columns: 1fr 1fr; }
-            .steps-layout { grid-template-columns: 1fr; gap: 3rem; }
-            .steps-right { display: none; }
-            .step.active .step-code { display: block; }
             footer { flex-direction: column; text-align: center; padding: 2.5rem 1.5rem; }
             .footer-right { text-align: center; }
         }
@@ -770,141 +754,71 @@
         <p class="section-desc">DocuMind is fully local. No accounts, no API keys — just install the prerequisites and run.</p>
     </div>
 
-    <div class="steps-layout">
-        <div id="steps-list">
-            <div class="step active" data-step="1">
-                <div class="step-num">01</div>
-                <div>
-                    <div class="step-title">Install Ollama</div>
-                    <div class="step-desc">Download and install Ollama from <strong style="color:var(--text)">ollama.com</strong> — it's the local AI engine that runs on your machine. Available for Mac, Windows, and Linux.</div>
-                </div>
-            </div>
-
-            <div class="step" data-step="2">
-                <div class="step-num">02</div>
-                <div>
-                    <div class="step-title">Pull an AI model</div>
-                    <div class="step-desc">Pull any model from Ollama's library. LLaMA 3.2 is a solid default, but you can use mistral, phi3, gemma2, or any other model you prefer.</div>
-                    <div class="step-code" data-copy="ollama pull llama3.2">
-                        <div class="code-head">
-                            <span class="code-lang">Terminal</span>
-                            <button class="copy-btn">copy</button>
-                        </div>
-                        <pre><span class="c-cmd">ollama pull llama3.2</span></pre>
-                    </div>
-                </div>
-            </div>
-
-            <div class="step" data-step="3">
-                <div class="step-num">03</div>
-                <div>
-                    <div class="step-title">Clone the repo & install dependencies</div>
-                    <div class="step-desc">Download the source code and install all Python packages. Requires Python 3.10 or higher.</div>
-                    <div class="step-code" data-copy="git clone https://github.com/paul-andrei-jison/RAG_document_analyzer_project.git">
-                        <div class="code-head">
-                            <span class="code-lang">Terminal · clone</span>
-                            <button class="copy-btn">copy</button>
-                        </div>
-                        <pre><span class="c-cmd">git clone</span> https://github.com/paul-andrei-jison/RAG_document_analyzer_project.git</pre>
-                    </div>
-                    <div class="step-code" style="margin-top:0.625rem;" data-copy="cd RAG_document_analyzer_project && pip install -r requirements.txt">
-                        <div class="code-head">
-                            <span class="code-lang">Terminal · install</span>
-                            <button class="copy-btn">copy</button>
-                        </div>
-                        <pre><span class="c-cmd">cd</span> RAG_document_analyzer_project &amp;&amp; <span class="c-cmd">pip install</span> <span class="c-flag">-r</span> requirements.txt</pre>
-                    </div>
-                </div>
-            </div>
-
-            <div class="step" data-step="4">
-                <div class="step-num">04</div>
-                <div>
-                    <div class="step-title">Start the server</div>
-                    <div class="step-desc">Run the FastAPI server. Use the first command for local access only. Use the second to share with teammates on the same network — then give them your machine's local IP (e.g. <code style="font-family:var(--font-mono);color:var(--gold);font-size:0.85em;">192.168.1.x:8000</code>).</div>
-                    <div class="step-code" data-copy="uvicorn main:app --reload">
-                        <div class="code-head">
-                            <span class="code-lang">Terminal · localhost only</span>
-                            <button class="copy-btn">copy</button>
-                        </div>
-                        <pre><span class="c-cmd">uvicorn</span> main:app <span class="c-flag">--reload</span></pre>
-                    </div>
-                    <div class="step-code" style="margin-top:0.625rem;" data-copy="uvicorn main:app --host 0.0.0.0 --port 8000">
-                        <div class="code-head">
-                            <span class="code-lang">Terminal · share on network</span>
-                            <button class="copy-btn">copy</button>
-                        </div>
-                        <pre><span class="c-cmd">uvicorn</span> main:app <span class="c-flag">--host</span> 0.0.0.0 <span class="c-flag">--port</span> 8000</pre>
-                    </div>
-                </div>
-            </div>
-
-            <div class="step" data-step="5">
-                <div class="step-num">05</div>
-                <div>
-                    <div class="step-title">Upload docs & start chatting</div>
-                    <div class="step-desc">Open <strong style="color:var(--text)">localhost:8000</strong> in your browser. Click the upload button to add PDFs or TXT files. Once processed, type any question — DocuMind searches across all your documents simultaneously to answer it.</div>
+    <div class="steps-list reveal">
+        <div class="step">
+            <div class="step-num">01</div>
+            <div class="step-body">
+                <div class="step-title">Install Ollama & pull a model</div>
+                <div class="step-desc">Download Ollama from <strong style="color:var(--text)">ollama.com</strong> and install it. Then run this command to download an AI model. You can use any model — llama3.2, mistral, phi3, gemma2, etc.</div>
+                <div class="step-code" data-copy="ollama pull llama3.2">
+                    <div class="code-head"><span class="code-lang">Terminal</span><button class="copy-btn">copy</button></div>
+                    <pre><span class="c-cmd">ollama pull llama3.2</span></pre>
                 </div>
             </div>
         </div>
 
-        <div class="steps-right">
-            <div class="step-panel active" data-panel="1">
-                <div class="panel-kicker">Step 01 · AI Runtime</div>
-                <div class="panel-title">Ollama is the engine that runs your AI locally</div>
-                <div class="panel-desc">It acts as a local server on port 11434. DocuMind connects to it to generate both document embeddings and chat responses — no internet required.</div>
-                <div class="panel-terminal">
-                    <div class="c-dim">ollama.com → download installer</div>
-                    <div class="c-dim">Run installer for your OS</div>
-                    <div class="c-ok">✓ Ollama running on port 11434</div>
+        <div class="step">
+            <div class="step-num">02</div>
+            <div class="step-body">
+                <div class="step-title">Clone the repository</div>
+                <div class="step-desc">Download the source code from GitHub. Requires Git installed.</div>
+                <div class="step-code" data-copy="git clone https://github.com/paul-andrei-jison/RAG_document_analyzer_project.git">
+                    <div class="code-head"><span class="code-lang">Terminal</span><button class="copy-btn">copy</button></div>
+                    <pre><span class="c-cmd">git clone</span> https://github.com/paul-andrei-jison/RAG_document_analyzer_project.git</pre>
                 </div>
             </div>
-            <div class="step-panel" data-panel="2">
-                <div class="panel-kicker">Step 02 · AI Model</div>
-                <div class="panel-title">Pull any model — not just LLaMA</div>
-                <div class="panel-desc">DocuMind works with any model Ollama supports. You can switch models in the UI dropdown without restarting the server.</div>
-                <div class="panel-terminal">
-                    <div class="c-ok">ollama pull llama3.2</div>
-                    <div class="c-dim">ollama pull mistral</div>
-                    <div class="c-dim">ollama pull phi3</div>
-                    <div class="c-dim">ollama pull gemma2</div>
-                    <div style="margin-top:0.5rem;color:var(--gold);">→ Any of these will work</div>
+        </div>
+
+        <div class="step">
+            <div class="step-num">03</div>
+            <div class="step-body">
+                <div class="step-title">Enter the folder & install dependencies</div>
+                <div class="step-desc">Navigate into the project and install all Python packages. Requires Python 3.10+.</div>
+                <div class="step-code" data-copy="cd RAG_document_analyzer_project">
+                    <div class="code-head"><span class="code-lang">Terminal</span><button class="copy-btn">copy</button></div>
+                    <pre><span class="c-cmd">cd</span> RAG_document_analyzer_project</pre>
+                </div>
+                <div class="step-code" data-copy="pip install -r requirements.txt">
+                    <div class="code-head"><span class="code-lang">Terminal</span><button class="copy-btn">copy</button></div>
+                    <pre><span class="c-cmd">pip install</span> <span class="c-flag">-r</span> requirements.txt</pre>
                 </div>
             </div>
-            <div class="step-panel" data-panel="3">
-                <div class="panel-kicker">Step 03 · Dependencies</div>
-                <div class="panel-title">Python packages the app needs</div>
-                <div class="panel-desc">pip reads requirements.txt and installs everything — FastAPI, ChromaDB, Ollama client, PyPDF2, and uvicorn.</div>
-                <div class="panel-terminal">
-                    <div class="c-ok">✓ fastapi</div>
-                    <div class="c-ok">✓ chromadb</div>
-                    <div class="c-ok">✓ ollama</div>
-                    <div class="c-ok">✓ pypdf2</div>
-                    <div class="c-ok">✓ uvicorn</div>
+        </div>
+
+        <div class="step">
+            <div class="step-num">04</div>
+            <div class="step-body">
+                <div class="step-title">Start the server</div>
+                <div class="step-desc">Use the first command for <strong style="color:var(--text)">local use only</strong>. Use the second if you want <strong style="color:var(--text)">teammates on your network</strong> to access it — then share your machine's local IP (e.g. <code style="font-family:var(--font-mono);color:var(--gold);font-size:0.85em;">192.168.1.x:8000</code>).</div>
+                <div class="step-code" data-copy="uvicorn main:app --reload">
+                    <div class="code-head"><span class="code-lang">Terminal · local only</span><button class="copy-btn">copy</button></div>
+                    <pre><span class="c-cmd">uvicorn</span> main:app <span class="c-flag">--reload</span></pre>
+                </div>
+                <div class="step-code" data-copy="uvicorn main:app --host 0.0.0.0 --port 8000">
+                    <div class="code-head"><span class="code-lang">Terminal · open to network</span><button class="copy-btn">copy</button></div>
+                    <pre><span class="c-cmd">uvicorn</span> main:app <span class="c-flag">--host</span> 0.0.0.0 <span class="c-flag">--port</span> 8000</pre>
                 </div>
             </div>
-            <div class="step-panel" data-panel="4">
-                <div class="panel-kicker">Step 04 · Server</div>
-                <div class="panel-title">One command starts the whole app</div>
-                <div class="panel-desc">FastAPI serves both the API and the frontend. <code style="font-family:var(--font-mono);color:var(--gold);font-size:0.85em;">--reload</code> is for local dev. Use <code style="font-family:var(--font-mono);color:var(--gold);font-size:0.85em;">--host 0.0.0.0</code> to let network teammates connect by your local IP.</div>
-                <div class="panel-terminal">
-                    <div class="c-dim">GET  /             → app UI</div>
-                    <div class="c-dim">POST /upload       → ingest doc</div>
-                    <div class="c-dim">GET  /documents    → list docs</div>
-                    <div class="c-dim">POST /chat         → ask question</div>
-                    <div style="margin-top:0.5rem;color:var(--gold);">→ Visit localhost:8000</div>
-                </div>
-            </div>
-            <div class="step-panel" data-panel="5">
-                <div class="panel-kicker">Step 05 · RAG Pipeline</div>
-                <div class="panel-title">What happens when you ask a question</div>
-                <div class="panel-desc">Every question runs a full retrieval-augmented generation pipeline — your query becomes a vector, the closest document chunks are found, and the AI generates an answer from them.</div>
-                <div class="panel-terminal">
-                    <div class="c-dim">1. Query → embedding vector</div>
-                    <div class="c-dim">2. ChromaDB similarity search</div>
-                    <div class="c-dim">3. Top 5 chunks retrieved</div>
-                    <div class="c-dim">4. Context assembled as prompt</div>
-                    <div class="c-ok">5. Ollama generates answer ✓</div>
+        </div>
+
+        <div class="step">
+            <div class="step-num">05</div>
+            <div class="step-body">
+                <div class="step-title">Open the app & start chatting</div>
+                <div class="step-desc">Open your browser and go to this address. Upload PDFs or TXT files using the upload button, then type any question — DocuMind searches all your documents at once to answer.</div>
+                <div class="step-code" data-copy="http://localhost:8000">
+                    <div class="code-head"><span class="code-lang">Browser address bar</span><button class="copy-btn">copy</button></div>
+                    <pre><span class="c-str">http://localhost:8000</span></pre>
                 </div>
             </div>
         </div>
@@ -1042,18 +956,6 @@
     }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
 
     document.querySelectorAll('.reveal, .stagger').forEach(el => revealObs.observe(el));
-
-    // Steps interactivity
-    document.querySelectorAll('.step').forEach(step => {
-        step.addEventListener('click', () => {
-            const num = step.dataset.step;
-            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
-            step.classList.add('active');
-            const panel = document.querySelector(`.step-panel[data-panel="${num}"]`);
-            if (panel) panel.classList.add('active');
-        });
-    });
 
     // Copy buttons — reads exact command from data-copy on the .step-code block
     document.querySelectorAll('.copy-btn').forEach(btn => {
